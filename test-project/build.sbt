@@ -1,0 +1,3 @@
+enablePlugins(AwesomeOSPlugin)
+
+awesomeOsList += "Solaris"
