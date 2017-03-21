@@ -1,3 +1,3 @@
-enablePlugins(AwesomeOSPlugin)
+enablePlugins(PublishDoc)
 
-awesomeOsList += "Solaris"
+amazonS3Uri in PublishDocSettings := "s3://bucket/key"
