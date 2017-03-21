@@ -1,3 +1,3 @@
 enablePlugins(PublishDoc)
 
-amazonS3Uri in PublishDocSettings := "s3://bucket/key"
+publishDocAmazonS3Uri := "s3://bucket/key"
