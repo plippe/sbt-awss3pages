@@ -2,7 +2,6 @@ sbtPlugin := true
 
 organization := "com.github.plippe"
 name := "sbt-publish-doc"
-version := "0.0.1"
 
 publishMavenStyle := false
 bintrayRepository := "sbt-plugin-releases"
