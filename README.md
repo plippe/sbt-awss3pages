@@ -1,5 +1,7 @@
 # sbt-awss3pages
 
+[ ![Download][download_img] ][download_link]
+
 Sbt plugin similar to [sbt-ghpages][sbt-ghpages], it pushes your [sbt-site][sbt-site] to [S3][s3]. The main advantage
 over using [github pages][github-page] is the ability to [restrict access][s3-access].
 
@@ -52,6 +54,9 @@ enablePlugins(SiteScaladocPlugin)
 
 siteSubdirName in SiteScaladoc := "" // move scaladoc at the root of the site
 ```
+
+[download_img]: https://api.bintray.com/packages/plippe/sbt/sbt-awss3pages/images/download.svg
+[download_link]: https://bintray.com/plippe/sbt/sbt-awss3pages/_latestVersion
 
 [sbt-ghpages]: https://github.com/sbt/sbt-ghpages
 [sbt-site]: https://github.com/sbt/sbt-site
