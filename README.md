@@ -12,7 +12,7 @@ To add `sbt-awss3pages`, just update your `project/plugins.sbt` file and enable 
 
 ```sbt
 // in project/plugins.sbt
-resolvers += Resolver.url("plippe-sbt-awss3pages", url("http://dl.bintray.com/plippe/sbt"))(Resolver.ivyStylePatterns)
+resolvers += Resolver.url("plippe-sbt", url("http://dl.bintray.com/plippe/sbt"))(Resolver.ivyStylePatterns)
 addSbtPlugin("com.github.plippe" % "sbt-awss3pages" % "XXX")
 ```
 
