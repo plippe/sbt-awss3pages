@@ -31,9 +31,10 @@ object PublishDocAmazonS3 extends AutoPlugin {
     streams.value.log.info(s"Publishing Scala API documentation $docFolder to $amazonS3Uri")
 
     Files.in(docFolder).foreach { docFile =>
-      streams.value.log.info(docFile.getAbsolutePath)
+      val s3Key: String = Files.popApiDir(docFile.getAbsolutePath.replace(crossTargetFolder, amazonS3Uri.getKey))
 
-      val s3Key = docFile.getAbsolutePath.replace(crossTargetFolder, amazonS3Uri.getKey)
+      streams.value.log.info(s"uploading ${docFile.getAbsolutePath} to $s3Key")
+
       amazonS3Client.putObject(amazonS3Uri.getBucket, s3Key, docFile)
     }
   }
