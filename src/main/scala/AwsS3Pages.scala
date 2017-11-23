@@ -26,14 +26,16 @@ object AwsS3PagesPlugin extends AutoPlugin {
 
   def pushSite = Def.task {
     streams.value.log.info(s"Pushing site to ${awsS3PagesUri.value}")
-    awsS3PagesPrivateMappings.value.foreach { case (file, target) =>
-      val targetS3Uri = new AmazonS3URI(s"${awsS3PagesUri.value}${target}", true)
+    awsS3PagesPrivateMappings.value
+      .filter { case (file, target) => file.isFile() }
+      .foreach { case (file, target) =>
+        val targetS3Uri = new AmazonS3URI(s"${awsS3PagesUri.value}${target}", true)
 
-      streams.value.log.info(s"Pushing ${file} to ${targetS3Uri}")
-      awsS3PagesClient.value.putObject(targetS3Uri.getBucket, targetS3Uri.getKey, file)
-    }
+        streams.value.log.info(s"Pushing ${file} to ${targetS3Uri}")
+        awsS3PagesClient.value.putObject(targetS3Uri.getBucket, targetS3Uri.getKey, file)
+      }
 
-    streams.value.log.info(s"${awsS3PagesPrivateMappings.value.length} files pushed")
+    streams.value.log.info(s"Pushing done")
   }
 
 }
