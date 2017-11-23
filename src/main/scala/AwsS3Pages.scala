@@ -4,8 +4,8 @@ import com.typesafe.sbt.site.SitePlugin
 import com.amazonaws.services.s3.{ AmazonS3, AmazonS3ClientBuilder, AmazonS3URI }
 
 trait AwsS3PagesKeys {
-  lazy val awsS3PagesClient = settingKey[AmazonS3]("Amazon S3 client to push the site")
-  lazy val awsS3PagesUri = settingKey[AmazonS3URI]("Uri to the S3 folder which will contain the site")
+  lazy val awsS3PagesClient = taskKey[AmazonS3]("Amazon S3 client to push the site")
+  lazy val awsS3PagesUri = taskKey[AmazonS3URI]("Uri to the S3 folder which will contain the site")
 
   lazy val awsS3PagesPushSite = taskKey[Unit]("Pushes a generated site into aws S3")
 
