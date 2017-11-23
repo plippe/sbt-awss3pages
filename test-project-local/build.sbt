@@ -1,3 +1,3 @@
-enablePlugins(PublishDoc)
+enablePlugins(AwsS3PagesPlugin)
 
-publishDocAmazonS3Uri := "s3://bucket/key"
+awsS3PagesUri := new com.amazonaws.services.s3.AmazonS3URI("s3://bucket/key/${organization.value}/${name.value}/${version.value}")

@@ -1,5 +1,5 @@
 // build root project
-lazy val root = Project("plugins", file(".")) dependsOn(publishDoc)
+lazy val root = Project("plugins", file(".")) dependsOn(awsS3Pages)
 
 // depends on the publishDoc project
-lazy val publishDoc = file("..").getAbsoluteFile.toURI
+lazy val awsS3Pages = RootProject(file("../.."))
