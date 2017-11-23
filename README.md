@@ -1,64 +1,62 @@
-# sbt-publish-doc
+# sbt-awss3pages
 
-Sbt plugin that publishes the documentation generated with `sbt doc`.
+Sbt plugin similar to [sbt-ghpages][sbt-ghpages], it pushes your [sbt-site][sbt-site] to [S3][s3]. The main advantage
+over using [github pages][github-page] is the ability to [restrict access][s3-access].
 
 
-### Installing sbt-publish-doc
+### Installing sbt-awss3pages
 
-As sbt-publish-doc is a plugin for sbt, it is installed like any other sbt plugin, that is by mere configuration.
-For details about using sbt plugins, please refer to [sbt Getting Started Guide / Using Plugins](http://www.scala-sbt.org/release/docs/Getting-Started/Using-Plugins.html).
-
-To add sbt-publish-doc to your build, two updates are required.
+To add `sbt-awss3pages`, just update your `project/plugins.sbt` file and enable it in your `build.sbt`.
 
 ```sbt
 // in project/plugins.sbt
-resolvers += Resolver.url(
-    "plippe-sbt-plugin-releases",
-    url("http://dl.bintray.com/plippe/sbt-plugin-releases")
-    )(Resolver.ivyStylePatterns)
-
-addSbtPlugin("com.github.plippe" % "sbt-publish-doc" % "0.1.0")
+resolvers += Resolver.url("plippe-sbt-awss3pages", url("http://dl.bintray.com/plippe/sbt"))(Resolver.ivyStylePatterns)
+addSbtPlugin("com.github.plippe" % "sbt-awss3pages" % "XXX")
 ```
 
 ```sbt
 // in build.sbt
-enablePlugins(PublishDoc)
+enablePlugins(AwsS3PagesPlugin)
 ```
 
 
-### Using sbt-publish-doc
+### Using sbt-awss3pages
 
-If you updated your build files like described above, you should have access to a new sbt task.
+`sbt-awss3pages` has only two settings to configure:
+  - `awsS3PagesClient`, the amazon S3 client to push the site, defaults to [`AmazonS3ClientBuilder.defaultClient()`][s3-client-default]
+  - `awsS3PagesUri`, URI to the S3 folder which will contain the site
 
-
-#### sbt publishDoc:amazonS3
-`publishDoc:amazonS3` will publish the documentation to [Amazon S3](http://docs.aws.amazon.com/AmazonS3/latest/dev/Welcome.html).
-
-There are two big advantages to this:
- - [S3 can host a static website](http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html)
- - [S3 access can be restricted to specific IP Addresses](http://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html#example-bucket-policies-use-case-3)
-
-`publishDocAmazonS3Uri` setting is required. It must be set to the documentation's destination on Amazon S3.
-
+These settings can be configured in your `build.sbt`:
 ```sbt
 // in build.sbt
-publishDocAmazonS3Uri := "s3://[BUCKET]/[KEY]"
 
-// OR
-publishDocAmazonS3Uri := s"s3://[BUCKET]/[KEY]/${organization.value}/${name.value}/${version.value}"
-```
-
-`publishDocAmazonS3Client` setting, by default, is set to [`AmazonS3ClientBuilder.defaultClient()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3ClientBuilder.html#defaultClient--),
-but it can be overwritten in the `build.sbt` file.
-
-```sbt
-// in build.sbt
-publishDocAmazonS3Client := AmazonS3ClientBuilder.standard()
-    .withRegion(Regions.US_EAST_1)
-    .withCredentials(new ProfileCredentialsProvider("my-profile"))
+awsS3PagesUri := new com.amazonaws.services.s3.AmazonS3URI("s3://bucket/key/${organization.value}/${name.value}/${version.value}")
+awsS3PagesClient := com.amazonaws.services.s3.AmazonS3ClientBuilder
+    .standard()
+    .withRegion(com.amazonaws.regions.Regions.US_EAST_1)
+    .withCredentials(new com.amazonaws.auth.profile.ProfileCredentialsProvider("my-profile"))
     ...
     .build()
 ```
 
-Once your build files are up to date, run `sbt publishDoc:amazonS3` to publish the documentation. It will
-be accessible at `[BUCKET].s3-website-[REGION].amazonaws.com/[KEY]/index.html`.
+Once configured, run `sbt awsS3PagesPushSite` to push your files to S3.
+
+
+### Using sbt-awss3pages to publish scala docs
+
+[sbt-site][sbt-site] can easily be used to [include Scaladoc with your site][sbt-site-scaladoc]. Pushing those files
+to S3 only requires the addition of a plugin. Furthermore, the path of the scaladoc can be configured.
+
+```sbt
+enablePlugins(SiteScaladocPlugin)
+
+siteSubdirName in SiteScaladoc := "" // move scaladoc at the root of the site
+```
+
+[sbt-ghpages]: https://github.com/sbt/sbt-ghpages
+[sbt-site]: https://github.com/sbt/sbt-site
+[sbt-site-scaladoc]: http://www.scala-sbt.org/sbt-site/api-documentation.html#scaladoc
+[s3]: https://aws.amazon.com/s3/
+[s3-access]: http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html
+[s3-client-default]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3ClientBuilder.html#defaultClient
+[github-page]: https://pages.github.com/
