@@ -15,4 +15,5 @@ object Files {
 
     in(List(file), Nil)
   }
+  def popApiDir(filePath: String) : String = filePath.replaceFirst("/api/", "/")
 }
