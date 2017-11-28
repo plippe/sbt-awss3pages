@@ -33,7 +33,7 @@ object AwsS3PagesPlugin extends AutoPlugin {
     apiURL := {
       val scaladocDir = (siteSubdirName in SiteScaladocPlugin.autoImport.SiteScaladoc).value
 
-      val awsRegion = awsS3PagesClient.value.getRegion
+      val awsRegion = awsS3PagesClient.value.getRegionName
       val awsS3Bucket = awsS3PagesUri.value.getBucket
       val awsS3Key = s"${awsS3PagesUri.value.getKey}/${scaladocDir}"
 
