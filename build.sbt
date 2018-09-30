@@ -8,6 +8,7 @@ bintrayRepository := "sbt"
 bintrayOrganization in bintray := None
 
 enablePlugins(GitVersioning)
+git.useGitDescribe := true
 
 scalaVersion := "2.12.4"
 crossSbtVersions := Vector("0.13.16", "1.0.3")
