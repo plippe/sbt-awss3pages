@@ -2,13 +2,13 @@
 .DEFAULT_GOAL := build
 
 clean:
-	sbt clean
+	sbt ^clean
 
 build:
-	sbt compile
+	sbt ^compile
 
 test:
-	sbt test
+	sbt ^test
 	cd examples/foobar && sbt compile
 
 release:
