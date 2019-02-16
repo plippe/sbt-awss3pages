@@ -44,73 +44,22 @@ object AwsS3PagesPlugin extends AutoPlugin {
   )
 
   def pushSite = Def.task {
-    streams.value.log.info(s"Pushing site to ${awsS3PagesUri.value}")
+    implicit val log = streams.value.log
 
-    val localFiles: Map[AmazonS3URI, (Long, File)] = (mappings in SitePlugin.autoImport.makeSite)
-      .value
-      .filter { case (file, target) => file.isFile() }
-      .map { case (file, target) =>
-        val uri = new AmazonS3URI(s"${awsS3PagesUri.value}${target}", true)
-        uri -> (file.length, file)
-      }
-      .toMap
+    log.info("Making site")
+    val site = (mappings in SitePlugin.autoImport.makeSite).value
 
-    val s3Files: Map[AmazonS3URI, Long] = {
-      @annotation.tailrec
-      def rec(request: ListObjectsV2Request, accumulator: Map[AmazonS3URI, Long] = Map.empty): Map[AmazonS3URI, Long] = {
-        val result = awsS3PagesClient.value.listObjectsV2(request)
-        val newAccumulator = accumulator ++ result.getObjectSummaries()
-          .asScala
-          .map { summary =>
-            val uri = new AmazonS3URI(s"s3://${summary.getBucketName()}/${summary.getKey()}")
-            uri -> summary.getSize()
-          }
+    log.info(s"Reading local files")
+    val localFiles = Local.files(site, awsS3PagesUri.value)
+    log.info(s"Reading done, ${localFiles.size} local files found")
 
-        Option(result.getNextContinuationToken) match {
-          case None => newAccumulator
-          case Some(token) =>
-            val newRequest = request.withContinuationToken(token)
-            rec(newRequest, newAccumulator)
-        }
-      }
+    log.info(s"Reading AWS S3 files")
+    val s3Files = AwsS3.files(awsS3PagesClient.value, awsS3PagesUri.value)
+    log.info(s"Reading done, ${s3Files.size} AWS S3 files found")
 
-      val request = new ListObjectsV2Request()
-        .withBucketName(awsS3PagesUri.value.getBucket)
-        .withPrefix(awsS3PagesUri.value.getKey)
-
-      rec(request)
-    }
-
-    val (toDelete, toPut) = (localFiles.keys ++ s3Files.keys)
-      .map { uri =>
-        (uri, localFiles.get(uri), s3Files.get(uri))
-      }
-      .collect {
-        case (uri, Some((localSize, file)), Some(s3Size)) if localSize != s3Size => Right((uri, file))
-        case (uri, Some((_, file)), None) => Right((uri, file))
-        case (uri, None, Some(_)) => Left(uri)
-      }
-      .foldLeft((List.empty[AmazonS3URI], List.empty[(AmazonS3URI, File)])) {
-        case ((ls, rs), Left(l)) => (ls :+ l, rs)
-        case ((ls, rs), Right(r)) => (ls, rs :+ r)
-      }
-
-    streams.value.log.info(s"Deleting removed files, ${toDelete.length} files in total")
-    toDelete
-      .grouped(100)
-      .foreach { uris =>
-        val request = new DeleteObjectsRequest(awsS3PagesUri.value.getBucket)
-          .withKeys(uris.map(_.getKey): _*)
-
-        awsS3PagesClient.value.deleteObjects(request)
-      }
-
-    streams.value.log.info(s"Pushing new, and updated files, ${toPut.length} files in total")
-    toPut.foreach { case (uri, file) =>
-        awsS3PagesClient.value.putObject(uri.getBucket, uri.getKey, file)
-      }
-
-    streams.value.log.info(s"Pushing done")
+    log.info(s"Syncing local, and AWS S3 files")
+    AwsS3.sync(awsS3PagesClient.value, localFiles, s3Files)
+    log.info(s"Syncing done")
   }
 
 }
