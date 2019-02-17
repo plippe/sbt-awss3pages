@@ -1,5 +1,6 @@
 import com.amazonaws.services.s3.{ AmazonS3, AmazonS3URI }
 import com.amazonaws.services.s3.model.{ListObjectsV2Request, S3ObjectSummary}
+import com.amazonaws.util.{BinaryUtils, Md5Utils}
 import java.io.File
 import scala.collection.JavaConverters._
 import sbt.Logger
@@ -39,9 +40,23 @@ object AwsS3 {
       .map { uri => sync(amazonS3, uri, local.get(uri), remote.get(uri)) }
       .foreach { sync => sync.unsafeRun }
 
+  def same(local: File, remote: S3ObjectSummary): Boolean =
+    sameSize(local, remote) &&
+    sameEtag(local, remote)
+
+  def sameSize(local: File, remote: S3ObjectSummary): Boolean = local.length == remote.getSize
+  def sameEtag(local: File, remote: S3ObjectSummary): Boolean = {
+    def etag(file: File): String = {
+      val md5Hash = Md5Utils.computeMD5Hash(file)
+      BinaryUtils.toHex(md5Hash)
+    }
+
+    etag(local) == remote.getETag
+  }
+
   def sync(amazonS3: AmazonS3, uri: AmazonS3URI, local: Option[File], remote: Option[S3ObjectSummary])(implicit log: Logger): AwsS3Sync = {
     (local, remote) match {
-      case (Some(file), Some(summary)) if file.length != summary.getSize => AwsS3Sync.Upload(amazonS3, uri, file)
+      case (Some(file), Some(summary)) if !same(file, summary) => AwsS3Sync.Upload(amazonS3, uri, file)
       case (Some(file), None) => AwsS3Sync.Upload(amazonS3, uri, file)
       case (None, Some(_)) => AwsS3Sync.Delete(amazonS3, uri)
       case _ => AwsS3Sync.Skip(uri)
